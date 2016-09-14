@@ -29,6 +29,10 @@ else
     echo "TEST PASSED"
 fi
 
+sleep 5
+echo "Trying python version..."
+python rpi3-bluetooth/main.py &
+
 # Don't exit the process
 while true; do
     sleep 1

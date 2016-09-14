@@ -1,11 +1,4 @@
-# base-image for python on any machine using a template variable,
-# see more about dockerfile templates here: http://docs.resin.io/deployment/docker-templates/
-# and about resin base images here: http://docs.resin.io/runtime/resin-base-images/
 FROM resin/%%RESIN_MACHINE_NAME%%-python
-
-# use apt-get if you need to install dependencies
-RUN apt-get update
-RUN apt-get install wget
 
 # add the key for foundation repository
 RUN wget http://archive.raspberrypi.org/debian/raspberrypi.gpg.key -O - | sudo apt-key add -
@@ -17,10 +10,10 @@ RUN sed -i '1s#^#deb http://archive.raspberrypi.org/debian jessie main\n#' /etc/
 RUN apt-get update
 
 # install required packages
-RUN apt-get install bluez bluez-firmware
+RUN apt-get install bluez bluez-firmware python-bluez
 
 # define our working directory in the container
-WORKDIR usr/src/app
+WORKDIR /usr/src/app
 
 # copy all files in our root to the working directory
 COPY . ./
