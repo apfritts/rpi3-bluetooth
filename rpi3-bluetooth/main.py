@@ -1,38 +1,36 @@
-# file: rfcomm-server.py
-# auth: Albert Huang <albert@csail.mit.edu>
-# desc: simple demonstration of a server application that uses RFCOMM sockets
-#
-# $Id: rfcomm-server.py 518 2007-08-10 07:20:07Z albert $
+from bluetooth import *
 
-import bluetooth
+server_sock=BluetoothSocket(L2CAP)
+server_sock.bind(("", 17))
 
-server_sock = bluetooth.BluetoothSocket(RFCOMM)
-server_sock.bind(("",PORT_ANY))
+with open(sys.path[0] + "/sdp_record.xml", "r") as fh:
+        service_record = fh.read()
+self.bus = dbus.SystemBus()
+self.manager = dbus.Interface(self.bus.get_object("org.bluez", "/"),"org.bluez.Manager")
+adapter_path = self.manager.DefaultAdapter()
+self.service = dbus.Interface(self.bus.get_object("org.bluez",adapter_path),
+                                                       "org.bluez.Service")
+service_handle = service.AddRecord(service_record)
+print "Service record added"
 server_sock.listen(1)
 
-port = server_sock.getsockname()[1]
-
-uuid = "94f39d29-7d6d-437d-973b-fba39e49d4ee"
-
-bluetooth.advertise_service( server_sock, "SampleServer",
-                   service_id = uuid,
-                   service_classes = [ uuid, SERIAL_PORT_CLASS ],
-                   profiles = [ SERIAL_PORT_PROFILE ],
-#                   protocols = [ OBEX_UUID ]
-                    )
-
-print("Waiting for connection on RFCOMM channel %d" % port)
-
-client_sock, client_info = server_sock.accept()
-print("Accepted connection from ", client_info)
+print("Waiting for connection on L2CAP")
 
 try:
+    client_sock, client_info = server_sock.accept()
+    print("Accepted connection from ", client_info)
+
     while True:
         data = client_sock.recv(1024)
-        if len(data) == 0: break
+        if len(data) == 0:
+                break
         print("received [%s]" % data)
 except IOError:
     pass
+except KeyboardInterrupt:
+    print "Stopping..."
+    stop_advertising(server_sock)
+    sys.exit()
 
 print("disconnected")
 
