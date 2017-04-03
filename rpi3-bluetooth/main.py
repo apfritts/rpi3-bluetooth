@@ -1,39 +1,27 @@
-from bluetooth import *
+import sys
+import bluetooth
 
-server_sock=BluetoothSocket(L2CAP)
-server_sock.bind(("", 17))
-
-with open(sys.path[0] + "/sdp_record.xml", "r") as fh:
-        service_record = fh.read()
-self.bus = dbus.SystemBus()
-self.manager = dbus.Interface(self.bus.get_object("org.bluez", "/"),"org.bluez.Manager")
-adapter_path = self.manager.DefaultAdapter()
-self.service = dbus.Interface(self.bus.get_object("org.bluez",adapter_path),
-                                                       "org.bluez.Service")
-service_handle = service.AddRecord(service_record)
-print "Service record added"
+server_sock=bluetooth.BluetoothSocket( bluetooth.L2CAP )
+server_sock.bind(("",0x1001))
 server_sock.listen(1)
+while True:
+    print("waiting for incoming connection")
+    client_sock,address = server_sock.accept()
+    print("Accepted connection from %s" % str(address))
 
-print("Waiting for connection on L2CAP")
-
-try:
-    client_sock, client_info = server_sock.accept()
-    print("Accepted connection from ", client_info)
-
+    print("waiting for data")
+    total = 0
     while True:
-        data = client_sock.recv(1024)
-        if len(data) == 0:
-                break
-        print("received [%s]" % data)
-except IOError:
-    pass
-except KeyboardInterrupt:
-    print "Stopping..."
-    stop_advertising(server_sock)
-    sys.exit()
+        try:
+            data = client_sock.recv(1024)
+        except bluetooth.BluetoothError as e:
+            break
+        if len(data) == 0: break
+        total += len(data)
+        print("total byte read: %d" % total)
 
-print("disconnected")
+    client_sock.close()
 
-client_sock.close()
+    print("connection closed")
+
 server_sock.close()
-print("all done")
